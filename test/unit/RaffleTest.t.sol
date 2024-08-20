@@ -69,7 +69,7 @@ contract RaffleTest is Test {
         raffle.entryRaffle{value: entranceFee};
     }
 
-        function testDontAllowPlayersToEnterWhileRaffleIsCalculating() public {
+    function testDontAllowPlayersToEnterWhileRaffleIsCalculating() public {
         // Arrange
         vm.prank(PLAYER);
         raffle.entryRaffle{value: entranceFee}();
@@ -81,6 +81,5 @@ contract RaffleTest is Test {
         vm.expectRevert(Raffle.Raffle__RaflleNotOpen.selector);
         vm.prank(PLAYER);
         raffle.entryRaffle{value: entranceFee}();
-
     }
 }
