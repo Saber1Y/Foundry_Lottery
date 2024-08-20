@@ -37,7 +37,7 @@ contract HelperConfig is CodeConstants, Script {
 
     function getConfigByChainId(
         uint256 chainId
-    ) public view returns (NetworkConfig memory) {
+    ) public returns (NetworkConfig memory) {
         if (networkConfigs[chainId].vrfCoordinator != address(0)) {
             return networkConfigs[chainId];
         } else if (chainId == LOCAL_CHAIN_ID) {
@@ -59,6 +59,10 @@ contract HelperConfig is CodeConstants, Script {
             });
     }
 
+    function getConfig() public returns (NetworkConfig memory) {
+        return getConfigByChainId(block.chainid);
+    }
+
     function getLocalConfig() public pure returns (NetworkConfig memory) {
         return
             NetworkConfig({
@@ -77,7 +81,11 @@ contract HelperConfig is CodeConstants, Script {
             return localNetworkConfig;
         }
         vm.startBroadcast();
-        VRFCoordinatorV2_5Mock vrfCoordinatorMock = new VRFCoordinatorV2_5Mock(MOCK_BASE_FEE, MOCK_GAS_PRICE_LINK, MOCK_WEI_PER_UNIT_LINK);
+        VRFCoordinatorV2_5Mock vrfCoordinatorMock = new VRFCoordinatorV2_5Mock(
+            MOCK_BASE_FEE,
+            MOCK_GAS_PRICE_LINK,
+            MOCK_WEI_PER_UNIT_LINK
+        );
         vm.stopBroadcast();
 
         localNetworkConfig = NetworkConfig({

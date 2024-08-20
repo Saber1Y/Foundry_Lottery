@@ -16,11 +16,15 @@ contract Raffle is VRFConsumerBaseV2Plus {
     error Raffle__NotEnoughToEnterRaflle();
     error Raffle__TransferFailed();
     error Raffle_RaflleNotOpen();
-    error Raffle__UpkeepNotNeeded(uint256 balance, uint256 length, uint256 raffleState);
+    error Raffle__UpkeepNotNeeded(
+        uint256 balance,
+        uint256 length,
+        uint256 raffleState
+    );
 
-    enum RaffleState  {
-        OPEN,
-        CALCULATING
+    enum RaffleState {
+        OPEN, //0
+        CALCULATING //1
     }
 
     uint16 private constant REQUEST_CONFIRMATION = 3;
@@ -64,7 +68,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
             revert Raffle__NotEnoughToEnterRaflle();
         }
 
-        if(s_raffleState != RaffleState.OPEN) {
+        if (s_raffleState != RaffleState.OPEN) {
             revert Raffle_RaflleNotOpen();
         }
 
@@ -84,21 +88,21 @@ contract Raffle is VRFConsumerBaseV2Plus {
      * 5. Implicity, your subscription is funded with LINK.
      */
 
-       function checkUpkeep(bytes memory /* checkData */) public view returns (bool upkeepNeeded, bytes memory /* performData */) {
+    function checkUpkeep(
+        bytes memory /* checkData */
+    ) public view returns (bool upkeepNeeded, bytes memory /* performData */) {
         bool isOpen = RaffleState.OPEN == s_raffleState;
         bool timePassed = ((block.timestamp - s_lastTimeStamp) >= i_interval);
         bool hasPlayers = s_players.length > 0;
         bool hasBalance = address(this).balance > 0;
         upkeepNeeded = (timePassed && isOpen && hasBalance && hasPlayers);
         return (upkeepNeeded, "0x0");
-
     }
 
     //send request function
     function performUpKeep(bytes calldata) external {
-
         (bool upkeepNeeded, ) = checkUpkeep("");
-        
+
         if (!upkeepNeeded) {
             revert Raffle__UpkeepNotNeeded(
                 address(this).balance,
@@ -126,8 +130,17 @@ contract Raffle is VRFConsumerBaseV2Plus {
         uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
     }
 
+    //getter Functions
     function getEntranceFee() external view returns (uint256) {
         return i_entranceFee;
+    }
+
+    function getRaffleState() external view returns (RaffleState) {
+        return s_raffleState;
+    }
+
+    function getPlayer(uint256 indexOfPlayer) external view returns (address) {
+        return s_players[indexOfPlayer];
     }
 
     //process request function
