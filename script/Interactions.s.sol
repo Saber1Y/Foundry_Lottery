@@ -10,13 +10,16 @@ contract CreateSubscription is Script {
     function createSubscriptionUsingConfig() public returns (uint256, address) {
         HelperConfig helperConfig = new HelperConfig();
         address vrfCoordinator = helperConfig.getConfig().vrfCoordinator;
-        (uint256 subId,) = createSubscription(vrfCoordinator);
+        (uint256 subId, ) = createSubscription(vrfCoordinator);
     }
 
-    function createSubscription(address vrfCoordinator) public returns (uint256, address) {
+    function createSubscription(
+        address vrfCoordinator
+    ) public returns (uint256, address) {
         console.log("Creating subscription on ChainID: ", block.chainid);
         vm.startBroadcast();
-        uint256 subId = VRFCoordinatorV2_5Mock(vrfCoordinator).createSubscription();
+        uint256 subId = VRFCoordinatorV2_5Mock(vrfCoordinator)
+            .createSubscription();
         vm.stopBroadcast();
         console.log("Your sub Id is: ", subId);
         console.log("Please update subscriptionId in HelperConfig!");
@@ -25,6 +28,16 @@ contract CreateSubscription is Script {
 
     function run() public {
         createSubscriptionUsingConfig();
+    }
+}
+
+contract FundSubscription is Script {
+    uint96 public constant FUND_AMOUNT = 3 ether;
+
+    function fundSubscriptionUsingConfig() public {}
+
+    function run() external {
+        fundSubscriptionUsingConfig();
     }
 }
 
