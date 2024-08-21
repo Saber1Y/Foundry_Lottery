@@ -68,5 +68,9 @@ contract FundSubscription is Script, CodeConstants {
     }
 }
 
+contract addConsumer is Script {
+    
+}
+
 //0xa21a23e4 reject
 //0xa21a23e4
