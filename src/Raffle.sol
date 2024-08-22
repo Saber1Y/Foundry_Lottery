@@ -16,12 +16,15 @@ contract Raffle is VRFConsumerBaseV2Plus {
     error Raffle__NotEnoughToEnterRaflle();
     error Raffle__TransferFailed();
     error Raffle_RaflleNotOpen();
-    error Raffle__UpkeepNotNeeded(uint256 balance, uint256 length, uint256 raffleState);
+    error Raffle__UpkeepNotNeeded(
+        uint256 balance,
+        uint256 length,
+        uint256 raffleState
+    );
 
     enum RaffleState {
         OPEN, //0
         CALCULATING //1
-
     }
 
     uint16 private constant REQUEST_CONFIRMATION = 3;
@@ -84,11 +87,9 @@ contract Raffle is VRFConsumerBaseV2Plus {
      * 4. There are players registered.
      * 5. Implicity, your subscription is funded with LINK.
      */
-    function checkUpkeep(bytes memory /* checkData */ )
-        public
-        view
-        returns (bool upkeepNeeded, bytes memory /* performData */ )
-    {
+    function checkUpkeep(
+        bytes memory /* checkData */
+    ) public view returns (bool upkeepNeeded, bytes memory /* performData */) {
         bool isOpen = RaffleState.OPEN == s_raffleState;
         bool timePassed = ((block.timestamp - s_lastTimeStamp) >= i_interval);
         bool hasPlayers = s_players.length > 0;
@@ -99,26 +100,31 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     //send request function
     function performUpKeep(bytes calldata) external {
-        (bool upkeepNeeded,) = checkUpkeep("");
+        (bool upkeepNeeded, ) = checkUpkeep("");
 
         if (!upkeepNeeded) {
-            revert Raffle__UpkeepNotNeeded(address(this).balance, s_players.length, uint256(s_raffleState));
+            revert Raffle__UpkeepNotNeeded(
+                address(this).balance,
+                s_players.length,
+                uint256(s_raffleState)
+            );
         }
         s_raffleState = RaffleState.CALCULATING;
         //Make Request to Get Chain Link RNG with imported vrf
 
-        VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient.RandomWordsRequest({
-            //Using the vrfPlusClient imported struct
-            keyHash: i_keyHash, //Gas Price
-            subId: i_subscriptionId,
-            requestConfirmations: REQUEST_CONFIRMATION,
-            callbackGasLimit: i_callbackGasLimit, //Gas Limit
-            numWords: NUM_WORDS,
-            extraArgs: VRFV2PlusClient._argsToBytes(
-                // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
-                VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
-            )
-        });
+        VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient
+            .RandomWordsRequest({
+                //Using the vrfPlusClient imported struct
+                keyHash: i_keyHash, //Gas Price
+                subId: i_subscriptionId,
+                requestConfirmations: REQUEST_CONFIRMATION,
+                callbackGasLimit: i_callbackGasLimit, //Gas Limit
+                numWords: NUM_WORDS,
+                extraArgs: VRFV2PlusClient._argsToBytes(
+                    // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
+                    VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
+                )
+            });
 
         uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
     }
@@ -137,7 +143,10 @@ contract Raffle is VRFConsumerBaseV2Plus {
     }
 
     //process request function
-    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {
+    function fulfillRandomWords(
+        uint256 requestId,
+        uint256[] calldata randomWords
+    ) internal override {
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable winner = s_players[indexOfWinner];
         s_winner = winner;
@@ -147,7 +156,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
         s_lastTimeStamp = block.timestamp; //timer resets
         emit WinnerPicked(s_winner);
 
-        (bool success,) = winner.call{value: address(this).balance}("");
+        (bool success, ) = winner.call{value: address(this).balance}("");
         if (!success) {
             revert Raffle__TransferFailed();
         }
